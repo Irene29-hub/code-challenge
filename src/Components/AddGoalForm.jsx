@@ -20,11 +20,17 @@ function AddGoalForm({ onAddGoal }) {
   const handleSubmit = (e) => {
     e.preventDefault()
     
+    // Convert targetAmount to number to ensure it's stored correctly
     const newGoal = {
       ...formData,
+      // Generate a temporary ID (json-server will replace this)
+      id: Date.now().toString(),
+      targetAmount: Number(formData.targetAmount),
+      savedAmount: Number(formData.savedAmount),
       createdAt: new Date().toISOString().split('T')[0]
     }
     
+    console.log('Submitting new goal:', newGoal)
     onAddGoal(newGoal)
     
     // Reset form

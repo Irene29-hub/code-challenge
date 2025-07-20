@@ -8,6 +8,7 @@ import Overview from './Components/Overview'
 function App() {
   const [goals, setGoals] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   
   useEffect(() => {
     fetchGoals()
@@ -15,18 +16,25 @@ function App() {
   
   const fetchGoals = async () => {
     try {
+      console.log('Fetching goals...')
       const response = await fetch('http://localhost:3000/goals')
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`)
+      }
       const data = await response.json()
+      console.log('Goals fetched:', data)
       setGoals(data)
       setLoading(false)
     } catch (error) {
       console.error('Error fetching goals:', error)
+      setError('Failed to fetch goals. Make sure json-server is running with "npm run server"')
       setLoading(false)
     }
   }
   
   const addGoal = async (newGoal) => {
     try {
+      console.log('Adding new goal:', newGoal)
       const response = await fetch('http://localhost:3000/goals', {
         method: 'POST',
         headers: {
@@ -34,15 +42,23 @@ function App() {
         },
         body: JSON.stringify(newGoal),
       })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`)
+      }
+      
       const data = await response.json()
+      console.log('Goal added:', data)
       setGoals([...goals, data])
     } catch (error) {
       console.error('Error adding goal:', error)
+      alert('Failed to add goal. Make sure json-server is running.')
     }
   }
   
   const updateGoal = async (id, updatedGoal) => {
     try {
+      console.log('Updating goal:', id, updatedGoal)
       const response = await fetch(`http://localhost:3000/goals/${id}`, {
         method: 'PATCH',
         headers: {
@@ -50,21 +66,36 @@ function App() {
         },
         body: JSON.stringify(updatedGoal),
       })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`)
+      }
+      
       const data = await response.json()
+      console.log('Goal updated:', data)
       setGoals(goals.map(goal => goal.id === id ? data : goal))
     } catch (error) {
       console.error('Error updating goal:', error)
+      alert('Failed to update goal. Make sure json-server is running.')
     }
   }
   
   const deleteGoal = async (id) => {
     try {
-      await fetch(`http://localhost:3000/goals/${id}`, {
+      console.log('Deleting goal:', id)
+      const response = await fetch(`http://localhost:3000/goals/${id}`, {
         method: 'DELETE',
       })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`)
+      }
+      
+      console.log('Goal deleted:', id)
       setGoals(goals.filter(goal => goal.id !== id))
     } catch (error) {
       console.error('Error deleting goal:', error)
+      alert('Failed to delete goal. Make sure json-server is running.')
     }
   }
   
@@ -82,6 +113,11 @@ function App() {
       
       {loading ? (
         <p>Loading goals...</p>
+      ) : error ? (
+        <div className="error-message">
+          <p>{error}</p>
+          <button onClick={fetchGoals}>Retry</button>
+        </div>
       ) : (
         <>
           <Overview goals={goals} />
